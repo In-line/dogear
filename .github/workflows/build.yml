@@ -1,0 +1,28 @@
+name: Build
+on: [push, pull_request]
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: [stable, beta, nightly]
+    steps:
+      - name: Install cargo tarpaulin
+        run: |
+          set -e
+          if [[ ${{ matrix.toolchain }} == stable ]]; then
+            cargo install cargo-tarpaulin -f
+          fi
+      - name: Build
+        run: |
+          cargo clean
+          cargo build
+      - name: Run tests
+        run: cargo test
+      - name: Get code coverage
+        run: |
+          set -e
+          if [[ ${{ matrix.toolchain }} == stable ]]; then
+            cargo tarpaulin --out Xml
+            bash <(curl -s https://codecov.io/bash)
+          fi
